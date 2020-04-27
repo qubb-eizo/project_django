@@ -27,17 +27,17 @@ def get_customers(request):
     ])
     return HttpResponse(result)
 
-def execute_query(query):
+def execute_query(query, *args):
     db_path = os.path.join(os.getcwd(), 'chinook.db')
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    cur.execute(query)
+    cur.execute(query, args)
     records = cur.fetchall()
     return records
 
 def get_city_and_state(request):
-    state = request.GET.get('State', '') # штат или город обьязателен
-    city = request.GET.get('City', '')
+    state = request.GET.get('State', '?') # штат или город обьязателен
+    city = request.GET.get('City', '?')
     query = f'select FirstName, LastName, State, City from customers where State = "{state}" or City = "{city}"'
     records = execute_query(query)
     result = '<br>'.join([
@@ -46,9 +46,8 @@ def get_city_and_state(request):
     ])
     return HttpResponse(result)
 
-fake = Faker()
-
 def fake_user(request):
+    fake = Faker()
     fake_users = '<br>'.join([
         str(fake.email() + ' - ' + fake.name())
         for _ in range(100)
@@ -88,7 +87,7 @@ def gen_password(request):
     digit = int(request.GET.get('digit', 0))
     chars = string.ascii_letters
     if length < 8 or length > 24:
-        return HttpResponse('error')
+        return HttpResponse('Bad parameters', 400)
     elif digit == 1:
         chars += string.digits
     passw = ''.join([
