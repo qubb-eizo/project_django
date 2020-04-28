@@ -7,7 +7,7 @@ import string
 
 from faker import Faker
 from django.shortcuts import render
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 
 # Create your views here.
 def hello(request):
@@ -21,10 +21,7 @@ def requirements(request):
 def get_customers(request):
     query = 'select distinct FirstName from customers'
     records = execute_query(query)
-    result = '<br>'.join([
-        str(record)
-        for record in records
-    ])
+    result = '<br>'.join([str(record) for record in records])
     return HttpResponse(result)
 
 def execute_query(query, *args):
@@ -36,22 +33,16 @@ def execute_query(query, *args):
     return records
 
 def get_city_and_state(request):
-    state = request.GET.get('State', '?') # штат или город обьязателен
-    city = request.GET.get('City', '?')
-    query = f'select FirstName, LastName, State, City from customers where State = "{state}" or City = "{city}"'
-    records = execute_query(query)
-    result = '<br>'.join([
-        str(record)
-        for record in records
-    ])
+    state = request.GET.get('State', '')
+    city = request.GET.get('City', '')
+    query = f'select FirstName, LastName, State, City from customers where State =? or City =?'
+    records = execute_query(query, state, city)
+    result = '<br>'.join([str(record) for record in records])
     return HttpResponse(result)
 
 def fake_user(request):
     fake = Faker()
-    fake_users = '<br>'.join([
-        str(fake.email() + ' - ' + fake.name())
-        for _ in range(100)
-    ])
+    fake_users = '<br>'.join([str(fake.email() + ' - ' + fake.name()) for _ in range(100)])
     return HttpResponse(fake_users)
 
 def turnover(request):
@@ -74,7 +65,6 @@ def students(request):
             aver1 = total / count
             aver2 = total2 / count
             ### 1дюйм = 2,54см   и  1фунт = 0,453592кг
-
             #########  переводим в см и кг, как и указано в задании
             average1 = round(aver1 * 2.54, 2)
             average2 = round(aver2 * 0.453592, 2)
@@ -90,20 +80,13 @@ def gen_password(request):
         return HttpResponse('Bad parameters', 400)
     elif digit == 1:
         chars += string.digits
-    passw = ''.join([
-        random.choice(chars)
-        for _ in range(int(length))
-    ])
+    passw = ''.join([random.choice(chars) for _ in range(int(length))])
     return HttpResponse(passw)
 
-############# необязаельное задание
+############# необязательное задание
 def orders(request):
     city = request.GET.get('BillingCity', '')
     country = request.GET.get('BillingCountry', '')
-    query = f'select * from invoices where BillingCity = "{city}" or BillingCountry = "{country}"'
-    records = execute_query(query)
-    result = '<br>'.join([
-        str(record)
-        for record in records
-    ]) # не сделано еще, не возращает .json
-    return HttpResponse(result)
+    query = f'select InvoiceDate, BillingAddress, Total from invoices where BillingCity =? or BillingCountry =?'
+    records = execute_query(query, city, country)
+    return JsonResponse(records, safe=False) # вроде работает, но все идет строкой, выводит только заданные ключи
