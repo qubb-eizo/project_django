@@ -16,9 +16,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from test_app.views import hello
+from test_app.views import requirements
+from test_app.views import get_customers
+from test_app.views import get_city_and_state
+from test_app.views import fake_user
+from test_app.views import turnover
+from test_app.views import students
+from test_app.views import gen_password
+from test_app.views import orders
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('hello/', hello),
-    path('', admin.site.urls)
+    path('', admin.site.urls),
+    path('req/', requirements),
+    path('distinct-name/', get_customers),
+    path('city-and-state/', get_city_and_state),
+    path('fake/', fake_user),
+    path('turnover/', turnover),
+    path('students/', students),
+    path('password/', gen_password),
+    path('orders/', orders)
 ]
